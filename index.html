@@ -1,0 +1,212 @@
+﻿<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Транспортні потоки</title>
+        <script src="js/jquery.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=ru-RU" type="text/javascript"></script> 
+        <script type='text/javascript' src='js/linkedselect.js'></script>
+        <script type='text/javascript' src="js/spin.min.js"></script>
+        <script src="js/jquery.js"></script>
+        <script type='text/javascript' src="js/dateFunc.js"></script>
+        <script type='text/javascript' src="js/options.js"></script>
+        <script type='text/javascript' src="js/viewFunc.js"></script>
+        <script type='text/javascript' src="js/ajaxFunc.js"></script>
+        <script type='text/javascript' src="js/genFunc.js"></script>
+        <link rel="stylesheet" type="text/css" href="style.css"/>  
+
+        <script>
+            $(function () {
+                $("a[rel]").overlay(function () {
+                    var wrap = this.getContent().find("div.wrap");
+                    if (wrap.is(":empty")) {
+                        wrap.load(this.getTrigger().attr("href"));
+                    }
+                });
+            });
+
+        </script>	
+
+
+    </head> 
+
+    <body>
+
+        <form name="FrmPost" action="" method="Post">  
+            <table border="0">
+                <tr>
+                    <td>День тижня:<select id="dayOfWeek">
+                            <ul>
+                                <li> <option value = "1">Неділя</option>  </li>
+                                <li> <option value = "2">Понеділок</option> </li>
+                                <li> <option value = "3">Вівторок</option> </li>
+                                <li> <option value = "4">Середа</option> </li>
+                                <li> <option value = "5">Четверг</option> </li>
+                                <li> <option value = "6">П'ятниця</option> </li>
+                                <li> <option value = "7">Субота</option> </li>
+                            </ul>			
+                        </select>
+                    </td>
+
+                    <td>Місяць:<select id="month">
+                            <ul>
+                                <li> <option value = "01">Січень</option>  </li>
+                                <li> <option value = "02">Лютий</option> </li>
+                                <li> <option value = "03">Березень</option> </li>
+                                <li> <option value = "04">Квітень</option> </li>
+                                <li> <option value = "05">Травень</option> </li>
+                                <li> <option value = "06">Червень</option> </li>
+                                <li> <option value = "07">Липень</option> </li>
+                                <li> <option value = "08">Серпень</option> </li>
+                                <li> <option value = "09">Вересень</option> </li>
+                                <li> <option value = "10">Жовтень</option> </li>
+                                <li> <option value = "11">Листопад</option> </li>
+                                <li> <option value = "12">Грудень</option> </li>
+                            </ul>			
+                        </select>
+                    </td>
+                    <td>Масштаб епюри:<select id="epuraZoom">
+                            <ul id="qqq" >
+                                <li> <option value="one">|||</option>  </li>
+                                <li> <option value="two">||||||</option> </li>
+                                <li> <option value="three">||||||||||||</option> </li>
+                                <li> <option value="four" selected="selected">Автоматично</option> </li>
+                            </ul>			
+                        </select>
+                    </td>
+                    <td>Тип данних:<select id="typeData">
+                            <ul>						  
+                                <li> <option value="one">Фактична інтенсивність (2011 р.)</option>  </li>
+                                <li> <option value="two" selected="selected">Розрахункова інтенсивність</option> </li>
+                                <li> <option value="three">Прогноз</option> </li>
+                            </ul>	
+                        </select>
+                    </td>					
+                    <td  id="y">Рік:<select id="year">
+                            <ul>
+                                <li> <option value = "2020">2020</option>  </li>
+                                <li> <option value = "2021">2021</option> </li>
+                                <li> <option value = "2022">2022</option> </li>
+                                <li> <option value = "2023">2023</option> </li>
+                                <li> <option value = "2024">2024</option> </li>
+                                <li> <option value = "2025">2025</option> </li>
+                                <li> <option value = "2026">2026</option>  </li>
+                                <li> <option value = "2027">2027</option> </li>
+                                <li> <option value = "2028">2028</option> </li>
+                                <li> <option value = "2029">2029</option> </li>
+                                <li> <option value = "2030">2030</option> </li>
+                                <li> <option value = "2031">2031</option> </li>
+                                <li> <option value = "2032">2032</option> </li>
+                                <li> <option value = "2033">2033</option> </li>
+                                <li> <option value = "2034">2034</option> </li>
+                                <li> <option value = "2035">2035</option> </li>
+
+
+
+                            </ul>			
+                        </select>
+                    </td> 
+                    <td>Потік транспортних засобів:<select id="typeAuto"></select>
+                    </td>
+                    <td><input type="button" onclick="send2srv()" value="Вивести треки"/></td> 
+                    <td>  <a href="contact.html" rel="#overlay"> <button type="button">Зворотній зв'язок</button></a></td>
+                </tr>
+            </table> 
+        </form>
+        <div id="loading"></div>
+        <div id="map"> </div>    
+
+        <div class="overlay" id="overlay">
+            <div class="wrap"></div>
+        </div>
+
+
+        <script language="javascript">
+        
+            var myMap, myCollection;
+            var seasonK = 1;
+            var epZoomK = 1;
+            var pxK = 1;
+            var TS;
+            var TD;
+            var DW = '';
+            var MY = '';
+            var tracks = [];
+            var spinner;
+
+            var Potok = new syncList;
+            Potok.dataList = {
+                'one': {
+                    '1': 'легкові авто',
+                    '2': 'вантажні авто вантажністю < 5 т',
+                    '3': 'вантажні авто вантажністю > 5 т',
+                    '4': 'автобуси місткістю < 30 пас.',
+                    '5': 'автобуси місткістю > 30 пас.',
+                    '6': 'загальний потік'
+                },
+                'two': {
+                    '1': 'легкові авто',
+                    '2': 'вантажні авто вантажністю < 5 т',
+                    '3': 'вантажні авто вантажністю > 5 т',
+                    '4': 'автобуси місткістю < 30 пас.',
+                    '5': 'автобуси місткістю > 30 пас.',
+                    '6': 'загальний потік'
+                },
+                'three': {
+                    '6': 'загальний потік',
+                }
+            };
+            // Включаем синхронизацию связанных списков
+            Potok.sync("typeData", "typeAuto");
+
+            var browserWindow = $(window);
+            var width = browserWindow.width() - 25;
+            var height = browserWindow.height() - 50;
+            $('#map').css({
+                'width': width + 'px',
+                'height': height + 'px'
+            });
+
+
+            //устанавливаем сегодняшний день недели и текущий месяц
+
+            if (DW == '') {
+                document.getElementById('dayOfWeek').value = numTodayDayOfWeek(todayDay());
+            }
+
+            if (MY == '') {
+                document.getElementById('month').value = numTodayMonth(todayDay());
+            }
+
+            function send2srv() {
+
+                //Запускаем прогресс бар
+                var target = document.getElementById('loading');
+                spinner = new Spinner(opts).spin(target);
+
+                var day = getWeekDay(document.getElementById('dayOfWeek').value - 1);
+                var month = getMonth(Number(document.getElementById('month').value) - 1);
+
+                var epZoom = document.getElementById('epuraZoom').value;
+
+                switch (epZoom) {
+                    case 'one':
+                        epZoomK = epZoomMin;
+                        break;
+                    case 'two':
+                        epZoomK = epZoomMid;
+                        break;
+                    case 'three':
+                        epZoomK = epZoomMax;
+                        break;
+                        defalt: epZoomK = 1;
+                }
+                getKoefs(day, month);
+            }
+
+            ymaps.ready(init);
+
+        </script>
+    </body>
+</html>
